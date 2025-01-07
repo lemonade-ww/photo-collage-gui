@@ -13,6 +13,7 @@ class PhotoCollageApp:
 
         self.folder_path = Entry(master, width=50)
         self.folder_path.pack()
+        self.folder_path.insert(0, './images')
 
         self.browse_button = Button(
             master, text="Browse", command=self.browse_folder)
@@ -23,7 +24,7 @@ class PhotoCollageApp:
 
         self.output_path = Entry(master, width=50)
         self.output_path.pack()
-        self.output_path.insert(0, './output/collage.jpg')
+        self.output_path.insert(0, './collage.jpg')
 
         self.create_button = Button(
             master, text="Create Collage", command=self.create_collage)
