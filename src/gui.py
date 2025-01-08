@@ -135,7 +135,8 @@ class PhotoCollageApp:
         else:
             self.dimension = None
             self.dimension_label.config(
-                text=f"Cannot use this folder. {num_images} images found, which is not a perfect square."
+                text=f"Cannot use this folder. {
+                    num_images} images found, which is not a perfect square."
             )
             self.final_size_label.config(
                 text="Final collage size: Unknown")
