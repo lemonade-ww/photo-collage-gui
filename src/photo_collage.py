@@ -18,23 +18,21 @@ def create_collage(image_folder, image_size, number):
     collage = Image.new('RGB', collage_size)
     slot_size = collage_size[0] // number
 
-    images = []
+    valid_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp")
+    images = [
+        os.path.join(image_folder, f)
+        for f in os.listdir(image_folder)
+        if f.lower().endswith(valid_extensions) and not f.startswith('.')
+    ]
 
-    for filename in os.listdir(image_folder):
-        if filename[0] != '.':
-            image_path = os.path.join(image_folder, filename)
-            img = Image.open(image_path)
-            img = ImageOps.exif_transpose(img)
-            img = crop_to_square(img)
-            img = img.resize((slot_size, slot_size))
-            images.append(img)
+    for i, image_path in enumerate(images):
+        img = Image.open(image_path)
+        img = ImageOps.exif_transpose(img)
+        img = crop_to_square(img)
+        img = img.resize((slot_size, slot_size))
 
-    random.shuffle(images)
-
-    count = 0
-    for i in range(number):
-        for j in range(number):
-            collage.paste(images[count], (j * slot_size, i * slot_size))
-            count += 1
+        row = i // number
+        col = i % number
+        collage.paste(img, (col * slot_size, row * slot_size))
 
     return collage

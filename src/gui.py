@@ -1,7 +1,8 @@
-from tkinter import Tk, Label, Button, Entry, filedialog, messagebox
+from tkinter import Tk, filedialog, messagebox
+from tkinter import ttk
 import os
 import math
-from PIL import Image, ImageTk
+from PIL import ImageTk
 from photo_collage import create_collage
 
 
@@ -10,53 +11,78 @@ class PhotoCollageApp:
         self.master = master
         master.title("Photo Collage Creator")
 
+        # Main frame
+        main_frame = ttk.Frame(master)
+        main_frame.pack(padx=10, pady=10)
+
         # Folder selection
-        self.label = Label(master, text="Select Image Folder:")
-        self.label.pack()
-        self.folder_path = Entry(master, width=50)
-        self.folder_path.pack()
+        folder_frame = ttk.Frame(main_frame)
+        folder_frame.grid(row=0, column=0, columnspan=2, pady=5)
+        self.label = ttk.Label(folder_frame, text="Select Image Folder:")
+        self.label.grid(row=0, column=0)
+        self.folder_path = ttk.Entry(folder_frame, width=50)
+        self.folder_path.grid(row=0, column=1)
         self.folder_path.insert(0, './src/images')
-        self.browse_button = Button(
-            master, text="Browse", command=self.browse_folder)
-        self.browse_button.pack()
+        self.browse_button = ttk.Button(
+            folder_frame, text="Browse", command=self.browse_folder)
+        self.browse_button.grid(row=0, column=2)
+
+        self.output_label = ttk.Label(folder_frame, text="Output Path:")
+        self.output_label.grid(row=1, column=0)
+        self.output_path = ttk.Entry(folder_frame, width=50)
+        self.output_path.grid(row=1, column=1)
+        self.output_path.insert(0, './collage.jpg')
+        self.output_browse_button = ttk.Button(
+            folder_frame, text="Browse", command=self.browse_output_path)
+        self.output_browse_button.grid(
+            row=1, column=2)
+
+        resolution_frame = ttk.Frame(main_frame)
+        resolution_frame.grid(row=1, column=0, columnspan=2, pady=5)
 
         # Resolution
-        self.size_label = Label(
-            master, text="Resolution of each small picture:")
-        self.size_label.pack()
-        self.size_entry = Entry(master, width=10)
-        self.size_entry.pack()
+        self.size_label = ttk.Label(
+            resolution_frame, text="Resolution of each small picture:")
+        self.size_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.size_entry = ttk.Entry(resolution_frame, width=10)
+        self.size_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         self.size_entry.insert(0, '400')
+        self.size_entry.bind("<KeyRelease>", self.update_final_size_label)
 
         # Dimension label
-        self.dimension_label = Label(
-            master, text="No valid directory selected yet.")
-        self.dimension_label.pack()
+        info_frame = ttk.Frame(main_frame)
+        info_frame.grid(row=2, column=0, columnspan=2, pady=5)
+        self.dimension_label = ttk.Label(
+            info_frame, text="No valid directory selected yet.")
+        self.dimension_label.grid(
+            row=1, column=0, columnspan=2, padx=5, pady=5, sticky="w")
         self.dimension = None
 
         # Final collage size label
-        self.final_size_label = Label(
-            master, text="Final collage size: Unknown")
-        self.final_size_label.pack()
+        self.final_size_label = ttk.Label(
+            info_frame, text="Final collage size: Unknown")
+        self.final_size_label.grid(
+            row=2, column=0, columnspan=2, padx=5, pady=5, sticky="w")
 
-        # Output path
-        self.output_label = Label(master, text="Output Path:")
-        self.output_label.pack()
-        self.output_path = Entry(master, width=50)
-        self.output_path.pack()
-        self.output_path.insert(0, './collage.jpg')
+        # Buttons frame
+        buttons_frame = ttk.Frame(main_frame)
+        buttons_frame.grid(row=3, column=0, columnspan=2, pady=5)
+        self.create_button = ttk.Button(
+            buttons_frame, text="Generate Preview", command=self.preview_collage)
+        self.create_button.grid(row=0, column=0, padx=5, pady=5)
+        self.save_button = ttk.Button(
+            buttons_frame, text="Save Collage", command=self.save_collage)
+        self.save_button.grid(row=0, column=1, padx=5, pady=5)
 
-        # Buttons and preview
-        self.create_button = Button(
-            master, text="Generate Preview", command=self.preview_collage)
-        self.create_button.pack()
-        self.preview_label = Label(master)
-        self.preview_label.pack()
-        self.save_button = Button(
-            master, text="Save Collage", command=self.save_collage)
-        self.save_button.pack()
+        # Preview frame
+        self.preview_frame = ttk.Frame(main_frame)
+        self.preview_label = ttk.Label(self.preview_frame)
+        self.preview_label.grid(row=0, column=0, columnspan=2, pady=5)
 
         self.generated_collage = None
+
+        # Disable preview frame initially
+        self.preview_frame.grid_remove()
 
         # Check default folder path on startup
         default_folder = self.folder_path.get()
@@ -69,6 +95,13 @@ class PhotoCollageApp:
             self.folder_path.delete(0, 'end')
             self.folder_path.insert(0, folder_selected)
             self.update_dimension_label(folder_selected)
+
+    def browse_output_path(self):
+        file_selected = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[
+                                                     ("JPEG files", "*.jpg"), ("All files", "*.*")])
+        if file_selected:
+            self.output_path.delete(0, 'end')
+            self.output_path.insert(0, file_selected)
 
     def update_dimension_label(self, folder_path):
         valid_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp")
@@ -88,20 +121,25 @@ class PhotoCollageApp:
         if dim * dim == num_images:
             self.dimension = dim
             self.dimension_label.config(
-                text=f"It will be a {dim}x{dim} collage.")
-            try:
-                size_value = int(self.size_entry.get())
-                final_size = size_value * dim
-                self.final_size_label.config(
-                    text=f"Final collage size: {final_size} x {final_size}")
-            except ValueError:
-                self.final_size_label.config(text="Invalid resolution entry.")
+                text=f"{dim} x {dim} collage ({num_images} images)")
+            self.update_final_size_label()
         else:
             self.dimension = None
             self.dimension_label.config(
                 text=f"Cannot use this folder. {num_images} images found, which is not a perfect square."
             )
-            self.final_size_label.config(text="Final collage size: Unknown")
+            self.final_size_label.config(
+                text="Final collage size: Unknown")
+
+    def update_final_size_label(self, event=None):
+        if self.dimension is not None:
+            try:
+                size_value = int(self.size_entry.get())
+                final_size = size_value * self.dimension
+                self.final_size_label.config(
+                    text=f"Final collage size: {final_size} x {final_size}")
+            except ValueError:
+                self.final_size_label.config(text="Invalid resolution entry.")
 
     def preview_collage(self):
         folder_path = self.folder_path.get()
@@ -126,6 +164,9 @@ class PhotoCollageApp:
             self.preview_label.config(image=preview_image)
             # Keep a reference to avoid garbage collection
             self.preview_label.image = preview_image
+
+            # Show preview frame
+            self.preview_frame.grid(row=4, column=0, columnspan=2, pady=5)
 
             messagebox.showinfo("Preview", "Collage preview generated!")
         except Exception as e:
