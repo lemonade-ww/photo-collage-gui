@@ -2,6 +2,7 @@ from PIL import Image, ImageOps
 import os
 import random
 
+
 def crop_to_square(image):
     width, height = image.size
     size = min(width, height)
@@ -11,7 +12,9 @@ def crop_to_square(image):
     bottom = (height + size) // 2
     return image.crop((left, top, right, bottom))
 
-def create_collage(image_folder, output_path, collage_size, number):
+
+def create_collage(image_folder, image_size, number):
+    collage_size = (number * image_size, number * image_size)
     collage = Image.new('RGB', collage_size)
     slot_size = collage_size[0] // number
 
@@ -34,9 +37,4 @@ def create_collage(image_folder, output_path, collage_size, number):
             collage.paste(images[count], (j * slot_size, i * slot_size))
             count += 1
 
-    collage.save(output_path, dpi=(300, 300))
-
-def main(image_folder, output_path, num):
-    size = num * 400
-    collage_size = (size, size)
-    create_collage(image_folder, output_path, collage_size, num)
+    return collage
