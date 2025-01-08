@@ -89,6 +89,14 @@ class PhotoCollageApp:
         if os.path.isdir(default_folder):
             self.update_dimension_label(default_folder)
 
+        # Set minimum size after window is rendered
+        self.master.after(100, self.set_min_size)
+
+    def set_min_size(self):
+        width = self.master.winfo_width()
+        height = self.master.winfo_height()
+        self.master.wm_minsize(width=width, height=height)
+
     def browse_folder(self):
         folder_selected = filedialog.askdirectory()
         if folder_selected:
