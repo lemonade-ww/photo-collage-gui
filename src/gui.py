@@ -177,6 +177,7 @@ class PhotoCollageApp:
             self.preview_frame.grid(row=4, column=0, columnspan=2, pady=5)
 
             messagebox.showinfo("Preview", "Collage preview generated!")
+
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
