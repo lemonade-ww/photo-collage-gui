@@ -19,23 +19,23 @@ class PhotoCollageApp:
         folder_frame = ttk.Frame(main_frame)
         folder_frame.grid(row=0, column=0, columnspan=2, pady=5)
         self.label = ttk.Label(folder_frame, text="Select Image Folder:")
-        self.label.grid(row=0, column=0)
+        self.label.grid(row=0, column=0, padx=5)
         self.folder_path = ttk.Entry(folder_frame, width=50)
-        self.folder_path.grid(row=0, column=1)
+        self.folder_path.grid(row=0, column=1, padx=5)
         self.folder_path.insert(0, './src/images')
         self.browse_button = ttk.Button(
             folder_frame, text="Browse", command=self.browse_folder)
-        self.browse_button.grid(row=0, column=2)
+        self.browse_button.grid(row=0, column=2, padx=5)
 
         self.output_label = ttk.Label(folder_frame, text="Output Path:")
-        self.output_label.grid(row=1, column=0)
+        self.output_label.grid(row=1, column=0, padx=5)
         self.output_path = ttk.Entry(folder_frame, width=50)
-        self.output_path.grid(row=1, column=1)
+        self.output_path.grid(row=1, column=1, padx=5)
         self.output_path.insert(0, './collage.jpg')
         self.output_browse_button = ttk.Button(
             folder_frame, text="Browse", command=self.browse_output_path)
         self.output_browse_button.grid(
-            row=1, column=2)
+            row=1, column=2, padx=5)
 
         resolution_frame = ttk.Frame(main_frame)
         resolution_frame.grid(row=1, column=0, columnspan=2, pady=5)
@@ -43,9 +43,9 @@ class PhotoCollageApp:
         # Resolution
         self.size_label = ttk.Label(
             resolution_frame, text="Resolution of each small picture:")
-        self.size_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.size_label.grid(row=0, column=0, padx=5)
         self.size_entry = ttk.Entry(resolution_frame, width=10)
-        self.size_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+        self.size_entry.grid(row=0, column=1, padx=5)
         self.size_entry.insert(0, '400')
         self.size_entry.bind("<KeyRelease>", self.update_final_size_label)
 
@@ -55,29 +55,29 @@ class PhotoCollageApp:
         self.dimension_label = ttk.Label(
             info_frame, text="No valid directory selected yet.")
         self.dimension_label.grid(
-            row=1, column=0, columnspan=2, padx=5, pady=5, sticky="w")
+            row=1, column=0, columnspan=2)
         self.dimension = None
 
         # Final collage size label
         self.final_size_label = ttk.Label(
             info_frame, text="Final collage size: Unknown")
         self.final_size_label.grid(
-            row=2, column=0, columnspan=2, padx=5, pady=5, sticky="w")
+            row=2, column=0, columnspan=2)
 
         # Buttons frame
         buttons_frame = ttk.Frame(main_frame)
         buttons_frame.grid(row=3, column=0, columnspan=2, pady=5)
         self.create_button = ttk.Button(
             buttons_frame, text="Generate Preview", command=self.preview_collage)
-        self.create_button.grid(row=0, column=0, padx=5, pady=5)
+        self.create_button.grid(row=0, column=0, padx=5)
         self.save_button = ttk.Button(
             buttons_frame, text="Save Collage", command=self.save_collage)
-        self.save_button.grid(row=0, column=1, padx=5, pady=5)
+        self.save_button.grid(row=0, column=1, padx=5)
 
         # Preview frame
         self.preview_frame = ttk.Frame(main_frame)
         self.preview_label = ttk.Label(self.preview_frame)
-        self.preview_label.grid(row=0, column=0, columnspan=2, pady=5)
+        self.preview_label.grid(row=0, column=0, columnspan=2)
 
         self.generated_collage = None
 
