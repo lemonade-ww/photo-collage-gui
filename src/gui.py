@@ -93,8 +93,9 @@ class PhotoCollageApp:
         self.master.after(100, self.set_min_size)
 
     def set_min_size(self):
-        width = self.master.winfo_width()
-        height = self.master.winfo_height()
+        self.master.update_idletasks()  # Ensure all elements are rendered
+        width = self.master.winfo_reqwidth()
+        height = self.master.winfo_reqheight()
         self.master.wm_minsize(width=width, height=height)
 
     def browse_folder(self):
@@ -175,8 +176,9 @@ class PhotoCollageApp:
 
             # Show preview frame
             self.preview_frame.grid(row=4, column=0, columnspan=2, pady=5)
+            self.set_min_size()
 
-            messagebox.showinfo("Preview", "Collage preview generated!")
+            # messagebox.showinfo("Preview", "Collage preview generated!")
 
         except Exception as e:
             messagebox.showerror("Error", str(e))
