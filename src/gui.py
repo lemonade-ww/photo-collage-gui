@@ -1,8 +1,9 @@
 import sys
 import os
 import math
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QMessageBox, QFrame
-from PyQt5.QtGui import QPixmap
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QMessageBox, QFrame
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt
 from photo_collage import create_collage
 
 
@@ -114,8 +115,8 @@ class PhotoCollageApp(QMainWindow):
             self.update_final_size_label()
         else:
             self.dimension = None
-            self.dimension_label.setText(
-                f"Cannot use this folder. {num_images} images found, which is not a perfect square.")
+            self.dimension_label.setText(f"Cannot use this folder. {
+                                         num_images} images found, which is not a perfect square.")
             self.final_size_label.setText("Final collage size: Unknown")
 
     def update_final_size_label(self):
@@ -163,8 +164,8 @@ class PhotoCollageApp(QMainWindow):
             return
         try:
             self.generated_collage.save(self.output_path.text())
-            QMessageBox.information(
-                self, "Success", f"Collage saved to {self.output_path.text()}!")
+            QMessageBox.information(self, "Success", f"Collage saved to {
+                                    self.output_path.text()}!")
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
 
@@ -173,4 +174,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = PhotoCollageApp()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
