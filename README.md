@@ -1,6 +1,6 @@
 # Photo Collage GUI
 
-This project is a Python application that allows users to create photo collages from images in a specified folder. It features a graphical user interface (GUI) for easy interaction.
+This application allows you to create photo collages using a graphical user interface.
 
 ## Project Structure
 
@@ -8,9 +8,7 @@ This project is a Python application that allows users to create photo collages 
 photo-collage-gui
 ├── src
 │   ├── photo_collage.py  # Core functionality for creating photo collages
-│   ├── gui.py            # GUI implementation for user interaction
-│   └── assets            # Directory for additional assets
-│       └── .gitkeep      # Keeps the assets directory tracked by Git
+│   └── gui.py            # GUI implementation for user interaction
 ├── requirements.txt       # Lists project dependencies
 └── README.md              # Project documentation
 ```
@@ -40,7 +38,7 @@ photo-collage-gui
 ## Dependencies
 
 - Pillow: For image processing
-- Tkinter or PyQt: For the graphical user interface
+- PyQt6: For the graphical user interface
 
 ## Contributing
 
