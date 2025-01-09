@@ -1,2 +1,4 @@
-Pillow
 PyQt6
+Pillow
+torch
+torchvision
