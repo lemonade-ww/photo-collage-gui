@@ -67,12 +67,9 @@ class PhotoCollageApp(QMainWindow):
         buttons_layout.addWidget(self.save_button)
 
         # Preview frame
-        self.preview_frame = QFrame()
-        self.preview_layout = QVBoxLayout(self.preview_frame)
         self.preview_label = QLabel()
-        self.preview_layout.addWidget(self.preview_label)
-        self.layout.addWidget(self.preview_frame)
-        self.preview_frame.setVisible(False)
+        self.layout.addWidget(self.preview_label)
+        self.preview_label.setVisible(False)
 
         self.generated_collage = None
 
@@ -152,7 +149,7 @@ class PhotoCollageApp(QMainWindow):
             self.preview_label.setPixmap(preview_image)
 
             # Show preview frame
-            self.preview_frame.setVisible(True)
+            self.preview_label.setVisible(True)
 
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
