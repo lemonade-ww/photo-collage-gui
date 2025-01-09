@@ -1,79 +1,124 @@
 import sys
 import os
 import math
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QMessageBox, QFrame
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QLineEdit, QPushButton, QFileDialog, QMessageBox, QSizePolicy, QComboBox
+)
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 from photo_collage import create_collage
+from PIL import ImageQt
+from PyQt6.QtCore import QThread, pyqtSignal, pyqtSlot
+
+
+class CollageWorker(QThread):
+    collage_created = pyqtSignal(object)
+    error_occurred = pyqtSignal(str)
+
+    def __init__(self, folder_path, size_value, dimension):
+        super().__init__()
+        self.folder_path = folder_path
+        self.size_value = size_value
+        self.dimension = dimension
+
+    def run(self):
+        try:
+            collage = create_collage(
+                self.folder_path, self.size_value, self.dimension)
+            self.collage_created.emit(collage)
+        except Exception as e:
+            self.error_occurred.emit(str(e))
 
 
 class PhotoCollageApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Photo Collage Creator")
+        self.init_ui()
+        self.generated_collage = None
+        self.check_default_folder()
+        self.initial_resize_done = False
 
-        # Main widget
+    def init_ui(self):
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
         self.layout = QVBoxLayout(self.main_widget)
 
-        # Folder selection
-        folder_layout = QHBoxLayout()
-        self.layout.addLayout(folder_layout)
-        self.folder_label = QLabel("Select Image Folder:")
-        folder_layout.addWidget(self.folder_label)
-        self.folder_path = QLineEdit('./src/images')
-        folder_layout.addWidget(self.folder_path)
-        self.browse_button = QPushButton("Browse")
-        self.browse_button.clicked.connect(self.browse_folder)
-        folder_layout.addWidget(self.browse_button)
+        self.setup_folder_selection()
+        self.setup_output_path()
+        self.setup_resolution()
+        self.setup_labels()
+        self.setup_buttons()
+        self.setup_preview_frame()
 
-        # Output path
+    def setup_folder_selection(self):
+        folder_layout = QHBoxLayout()
+        folder_layout.addWidget(QLabel("Select Image Folder:"))
+        self.folder_path = QLineEdit('./images')
+        folder_layout.addWidget(self.folder_path)
+        browse_button = QPushButton("Browse")
+        browse_button.clicked.connect(self.browse_folder)
+        folder_layout.addWidget(browse_button)
+        self.layout.addLayout(folder_layout)
+
+    def setup_output_path(self):
         output_layout = QHBoxLayout()
-        self.layout.addLayout(output_layout)
-        self.output_label = QLabel("Output Path:")
-        output_layout.addWidget(self.output_label)
+        output_layout.addWidget(QLabel("Output Path:"))
         self.output_path = QLineEdit('./collage.jpg')
         output_layout.addWidget(self.output_path)
-        self.output_browse_button = QPushButton("Browse")
-        self.output_browse_button.clicked.connect(self.browse_output_path)
-        output_layout.addWidget(self.output_browse_button)
+        output_browse_button = QPushButton("Browse")
+        output_browse_button.clicked.connect(self.browse_output_path)
+        output_layout.addWidget(output_browse_button)
+        self.layout.addLayout(output_layout)
 
-        # Resolution
+    def setup_resolution(self):
         resolution_layout = QHBoxLayout()
+        resolution_layout.addWidget(
+            QLabel("Resolution of each small picture:"))
+        self.size_dropdown = QComboBox(self)
+        self.size_dropdown.addItems([str(i) for i in range(100, 1100, 100)])
+        self.size_dropdown.setCurrentIndex(3)
+        self.size_dropdown.currentIndexChanged.connect(
+            self.update_final_size_label)
+        resolution_layout.addWidget(self.size_dropdown)
         self.layout.addLayout(resolution_layout)
-        self.size_label = QLabel("Resolution of each small picture:")
-        resolution_layout.addWidget(self.size_label)
-        self.size_entry = QLineEdit('400')
-        self.size_entry.textChanged.connect(self.update_final_size_label)
-        resolution_layout.addWidget(self.size_entry)
 
-        # Dimension label
+    def setup_labels(self):
+        labels_layout = QVBoxLayout()
         self.dimension_label = QLabel("No valid directory selected yet.")
-        self.layout.addWidget(self.dimension_label)
-
-        # Final collage size label
+        labels_layout.addWidget(self.dimension_label)
         self.final_size_label = QLabel("Final collage size: Unknown")
-        self.layout.addWidget(self.final_size_label)
+        labels_layout.addWidget(self.final_size_label)
+        # labels_layout.addStretch()
+        self.layout.addLayout(labels_layout)
 
-        # Buttons
+    def setup_buttons(self):
         buttons_layout = QHBoxLayout()
+        create_button = QPushButton("Generate Preview")
+        create_button.clicked.connect(self.preview_collage)
+        buttons_layout.addWidget(create_button)
+        save_button = QPushButton("Save Collage")
+        save_button.clicked.connect(self.save_collage)
+        buttons_layout.addWidget(save_button)
         self.layout.addLayout(buttons_layout)
-        self.create_button = QPushButton("Generate Preview")
-        self.create_button.clicked.connect(self.preview_collage)
-        buttons_layout.addWidget(self.create_button)
-        self.save_button = QPushButton("Save Collage")
-        self.save_button.clicked.connect(self.save_collage)
-        buttons_layout.addWidget(self.save_button)
 
-        # Preview frame
+    def setup_preview_frame(self):
+        preview_layout = QHBoxLayout()
         self.preview_label = QLabel()
-        self.layout.addWidget(self.preview_label)
-        self.preview_label.setVisible(False)
+        self.preview_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.preview_label.setMinimumSize(400, 400)
+        placeholder_pixmap = QPixmap(400, 400)
+        placeholder_pixmap.fill(Qt.GlobalColor.lightGray)
+        self.preview_label.setPixmap(placeholder_pixmap)
 
-        self.generated_collage = None
+        preview_layout.addStretch()
+        preview_layout.addWidget(self.preview_label)
+        preview_layout.addStretch()
+        self.layout.addLayout(preview_layout)
 
-        # Check default folder path on startup
+    def check_default_folder(self):
         default_folder = self.folder_path.text()
         if os.path.isdir(default_folder):
             self.update_dimension_label(default_folder)
@@ -87,7 +132,8 @@ class PhotoCollageApp(QMainWindow):
 
     def browse_output_path(self):
         file_selected, _ = QFileDialog.getSaveFileName(
-            self, "Save File", "", "JPEG files (*.jpg);;All files (*)")
+            self, "Save File", "", "JPEG files (*.jpg);;All files (*)"
+        )
         if file_selected:
             self.output_path.setText(file_selected)
 
@@ -119,7 +165,7 @@ class PhotoCollageApp(QMainWindow):
     def update_final_size_label(self):
         if self.dimension is not None:
             try:
-                size_value = int(self.size_entry.text())
+                size_value = int(self.size_dropdown.currentText())
                 final_size = size_value * self.dimension
                 self.final_size_label.setText(
                     f"Final collage size: {final_size} x {final_size}")
@@ -137,22 +183,36 @@ class PhotoCollageApp(QMainWindow):
                 self, "Error", "Please select a valid folder with a perfect square number of images.")
             return
 
-        try:
-            size_value = int(self.size_entry.text())
-            collage = create_collage(folder_path, size_value, self.dimension)
-            self.generated_collage = collage
+        size_value = int(self.size_dropdown.currentText())
+        self.worker = CollageWorker(folder_path, size_value, self.dimension)
+        self.worker.collage_created.connect(self.on_collage_created)
+        self.worker.error_occurred.connect(self.on_error_occurred)
+        self.worker.started.connect(self.on_worker_started)
+        self.worker.finished.connect(self.on_worker_finished)
+        self.worker.start()
 
-            # Show smaller preview
-            collage_preview = collage.copy()
-            collage_preview.thumbnail((400, 400))
-            preview_image = QPixmap.fromImage(collage_preview.toqimage())
-            self.preview_label.setPixmap(preview_image)
+    @pyqtSlot()
+    def on_worker_started(self):
+        self.generate_button.setText("Generating...")
+        self.generate_button.setEnabled(False)
+        self.save_button.setEnabled(False)
 
-            # Show preview frame
-            self.preview_label.setVisible(True)
+    @pyqtSlot()
+    def on_worker_finished(self):
+        self.generate_button.setText("Generate Preview")
+        self.generate_button.setEnabled(True)
+        self.save_button.setEnabled(True)
 
-        except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
+    @pyqtSlot(object)
+    def on_collage_created(self, collage):
+        self.generated_collage = collage
+        preview_image = QPixmap.fromImage(ImageQt.ImageQt(collage)).scaled(
+            self.preview_label.size(), Qt.AspectRatioMode.KeepAspectRatio)
+        self.preview_label.setPixmap(preview_image)
+
+    @pyqtSlot(str)
+    def on_error_occurred(self, error_message):
+        QMessageBox.critical(self, "Error", error_message)
 
     def save_collage(self):
         if self.generated_collage is None:
@@ -165,6 +225,12 @@ class PhotoCollageApp(QMainWindow):
                                     self.output_path.text()}!")
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
+
+    def resizeEvent(self, event):
+        if not self.initial_resize_done:
+            self.setFixedSize(self.size())
+            self.initial_resize_done = True
+        super().resizeEvent(event)
 
 
 if __name__ == "__main__":

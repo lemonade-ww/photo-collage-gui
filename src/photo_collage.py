@@ -25,6 +25,8 @@ def create_collage(image_folder, image_size, number):
         if f.lower().endswith(valid_extensions) and not f.startswith('.')
     ]
 
+    random.shuffle(images)
+
     for i, image_path in enumerate(images):
         img = Image.open(image_path)
         img = ImageOps.exif_transpose(img)
