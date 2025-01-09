@@ -2,6 +2,10 @@
 
 This application allows you to create photo collages using a graphical user interface.
 
+## Version
+
+Current version: 1.0.0
+
 ## Project Structure
 
 ```
