@@ -1,4 +1,4 @@
 images/*
-src/dist/
-src/build/
+dist/
+build/
 gui.spec

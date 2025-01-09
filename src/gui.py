@@ -5,10 +5,16 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QLineEdit, QPushButton, QFileDialog, QMessageBox, QSizePolicy, QComboBox
 )
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot, QStandardPaths
 from PIL import ImageQt
 from photo_collage import create_collage
+
+icon_path = './src/icon.png'
+if not os.path.exists(icon_path):
+    print(f"Icon file not found: {icon_path}")
+else:
+    print(f"Icon file found: {icon_path}")
 
 
 class CollageWorker(QThread):
@@ -54,7 +60,10 @@ class PhotoCollageApp(QMainWindow):
     def setup_folder_selection(self):
         folder_layout = QHBoxLayout()
         folder_layout.addWidget(QLabel("Select Image Folder:"))
-        self.folder_path = QLineEdit('./images')
+        default_pictures_path = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.PicturesLocation)
+        self.folder_path = QLineEdit(
+            os.path.join(default_pictures_path, 'images'))
         folder_layout.addWidget(self.folder_path)
         browse_button = QPushButton("Browse")
         browse_button.clicked.connect(self.browse_folder)
@@ -64,7 +73,10 @@ class PhotoCollageApp(QMainWindow):
     def setup_output_path(self):
         output_layout = QHBoxLayout()
         output_layout.addWidget(QLabel("Output Path:"))
-        self.output_path = QLineEdit('./collage.jpg')
+        default_pictures_path = QStandardPaths.writableLocation(
+            QStandardPaths.StandardLocation.PicturesLocation)
+        self.output_path = QLineEdit(os.path.join(
+            default_pictures_path, 'collage.jpg'))
         output_layout.addWidget(self.output_path)
         output_browse_button = QPushButton("Browse")
         output_browse_button.clicked.connect(self.browse_output_path)
@@ -107,8 +119,8 @@ class PhotoCollageApp(QMainWindow):
         self.preview_label = QLabel()
         self.preview_label.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.preview_label.setMinimumSize(400, 400)
-        placeholder_pixmap = QPixmap(400, 400)
+        self.preview_label.setMinimumSize(600, 600)
+        placeholder_pixmap = QPixmap(600, 600)
         placeholder_pixmap.fill(Qt.GlobalColor.lightGray)
         self.preview_label.setPixmap(placeholder_pixmap)
 
@@ -147,6 +159,7 @@ class PhotoCollageApp(QMainWindow):
                 "No images found in this folder. Please select a different folder.")
             self.dimension = None
             self.final_size_label.setText("Final collage size: Unknown")
+            self.create_button.setEnabled(False)
             return
 
         dim = int(math.isqrt(num_images))
@@ -155,11 +168,13 @@ class PhotoCollageApp(QMainWindow):
             self.dimension_label.setText(
                 f"{dim} x {dim} collage ({num_images} images)")
             self.update_final_size_label()
+            self.create_button.setEnabled(True)
         else:
             self.dimension = None
-            self.dimension_label.setText(f"Cannot use this folder. {
-                                         num_images} images found, which is not a perfect square.")
+            self.dimension_label.setText(
+                f"Cannot use this folder. {num_images} images found, which is not a perfect square.")
             self.final_size_label.setText("Final collage size: Unknown")
+            self.create_button.setEnabled(False)
 
     def update_final_size_label(self):
         if self.dimension is not None:
@@ -221,8 +236,8 @@ class PhotoCollageApp(QMainWindow):
         try:
             self.generated_collage.save(
                 self.output_path.text(), dpi=(300, 300))
-            QMessageBox.information(self, "Success", f"Collage saved to {
-                                    self.output_path.text()}!")
+            QMessageBox.information(
+                self, "Success", f"Collage saved to {self.output_path.text()}!")
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
 
@@ -235,6 +250,7 @@ class PhotoCollageApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(icon_path))
     window = PhotoCollageApp()
     window.show()
     sys.exit(app.exec())
