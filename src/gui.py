@@ -89,7 +89,6 @@ class PhotoCollageApp(QMainWindow):
         labels_layout.addWidget(self.dimension_label)
         self.final_size_label = QLabel("Final collage size: Unknown")
         labels_layout.addWidget(self.final_size_label)
-        # labels_layout.addStretch()
         self.layout.addLayout(labels_layout)
 
     def setup_buttons(self):
