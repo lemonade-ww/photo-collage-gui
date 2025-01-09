@@ -6,10 +6,9 @@ from PyQt6.QtWidgets import (
     QLineEdit, QPushButton, QFileDialog, QMessageBox, QSizePolicy, QComboBox
 )
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import Qt
-from photo_collage import create_collage
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, pyqtSlot
 from PIL import ImageQt
-from PyQt6.QtCore import QThread, pyqtSignal, pyqtSlot
+from photo_collage import create_collage
 
 
 class CollageWorker(QThread):
@@ -95,12 +94,13 @@ class PhotoCollageApp(QMainWindow):
 
     def setup_buttons(self):
         buttons_layout = QHBoxLayout()
-        create_button = QPushButton("Generate Preview")
-        create_button.clicked.connect(self.preview_collage)
-        buttons_layout.addWidget(create_button)
-        save_button = QPushButton("Save Collage")
-        save_button.clicked.connect(self.save_collage)
-        buttons_layout.addWidget(save_button)
+        self.create_button = QPushButton("Generate Preview")
+        self.create_button.clicked.connect(self.preview_collage)
+        buttons_layout.addWidget(self.create_button)
+        self.save_button = QPushButton("Save Collage")
+        self.save_button.setEnabled(False)
+        self.save_button.clicked.connect(self.save_collage)
+        buttons_layout.addWidget(self.save_button)
         self.layout.addLayout(buttons_layout)
 
     def setup_preview_frame(self):
@@ -193,14 +193,14 @@ class PhotoCollageApp(QMainWindow):
 
     @pyqtSlot()
     def on_worker_started(self):
-        self.generate_button.setText("Generating...")
-        self.generate_button.setEnabled(False)
+        self.create_button.setText("Generating...")
+        self.create_button.setEnabled(False)
         self.save_button.setEnabled(False)
 
     @pyqtSlot()
     def on_worker_finished(self):
-        self.generate_button.setText("Generate Preview")
-        self.generate_button.setEnabled(True)
+        self.create_button.setText("Generate Preview")
+        self.create_button.setEnabled(True)
         self.save_button.setEnabled(True)
 
     @pyqtSlot(object)
@@ -220,7 +220,8 @@ class PhotoCollageApp(QMainWindow):
                 self, "Error", "No collage to save. Generate a preview first.")
             return
         try:
-            self.generated_collage.save(self.output_path.text())
+            self.generated_collage.save(
+                self.output_path.text(), dpi=(300, 300))
             QMessageBox.information(self, "Success", f"Collage saved to {
                                     self.output_path.text()}!")
         except Exception as e:

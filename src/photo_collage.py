@@ -1,6 +1,7 @@
 from PIL import Image, ImageOps
 import os
 import random
+from concurrent.futures import ThreadPoolExecutor
 
 
 def crop_to_square(image):
@@ -13,28 +14,35 @@ def crop_to_square(image):
     return image.crop((left, top, right, bottom))
 
 
+def load_and_process_image(image_path, slot_size):
+    image = Image.open(image_path)
+    image = ImageOps.exif_transpose(image)
+    image = crop_to_square(image)
+    image = ImageOps.fit(image, (slot_size, slot_size))
+    return image
+
+
 def create_collage(image_folder, image_size, number):
     collage_size = (number * image_size, number * image_size)
     collage = Image.new('RGB', collage_size)
     slot_size = collage_size[0] // number
 
     valid_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp")
-    images = [
+    image_paths = [
         os.path.join(image_folder, f)
         for f in os.listdir(image_folder)
         if f.lower().endswith(valid_extensions) and not f.startswith('.')
     ]
 
-    random.shuffle(images)
+    random.shuffle(image_paths)
 
-    for i, image_path in enumerate(images):
-        img = Image.open(image_path)
-        img = ImageOps.exif_transpose(img)
-        img = crop_to_square(img)
-        img = img.resize((slot_size, slot_size))
+    with ThreadPoolExecutor() as executor:
+        images = list(executor.map(lambda p: load_and_process_image(
+            p, slot_size), image_paths[:number*number]))
 
+    for i, image in enumerate(images):
         row = i // number
         col = i % number
-        collage.paste(img, (col * slot_size, row * slot_size))
+        collage.paste(image, (col * slot_size, row * slot_size))
 
     return collage
