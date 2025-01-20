@@ -1,4 +1,4 @@
-# Photo Collage GUI
+# Photo Collage Generator
 
 This application allows you to create photo collages using a graphical user interface.
 
