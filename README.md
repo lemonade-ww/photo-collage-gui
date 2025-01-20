@@ -4,7 +4,7 @@ This application allows you to create photo collages using a graphical user inte
 
 ## Version
 
-Current version: 1.0.0
+Current version: 1.0.1
 
 ## Project Structure
 
