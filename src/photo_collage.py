@@ -1,14 +1,7 @@
-import torch
-import torchvision.transforms as transforms
 from PIL import Image, ImageOps
 import os
 import random
 from concurrent.futures import ThreadPoolExecutor
-
-device = torch.device('cuda' if torch.cuda.is_available(
-) else 'mps' if torch.backends.mps.is_available() else 'cpu')
-
-print(f"Using device: {device}")
 
 
 def crop_to_square(image):
@@ -25,14 +18,7 @@ def load_and_process_image(image_path, slot_size):
     image = Image.open(image_path)
     image = ImageOps.exif_transpose(image)
     image = crop_to_square(image)
-
-    transform = transforms.Compose([
-        transforms.Resize((slot_size, slot_size)),
-        transforms.ToTensor()
-    ])
-
-    image = transform(image).to(device)
-    image = transforms.ToPILImage()(image.cpu())
+    image = ImageOps.fit(image, (slot_size, slot_size))
     return image
 
 
@@ -54,9 +40,9 @@ def create_collage(image_folder, image_size, number):
         images = list(executor.map(lambda p: load_and_process_image(
             p, slot_size), image_paths[:number*number]))
 
-    for idx, image in enumerate(images):
-        x = (idx % number) * slot_size
-        y = (idx // number) * slot_size
-        collage.paste(image, (x, y))
+    for i, image in enumerate(images):
+        row = i // number
+        col = i % number
+        collage.paste(image, (col * slot_size, row * slot_size))
 
     return collage
