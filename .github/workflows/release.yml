@@ -29,7 +29,7 @@ jobs:
         python -m PyInstaller --windowed src/gui.py
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: executable-windows
         path: dist/gui.exe
@@ -57,7 +57,7 @@ jobs:
         python -m PyInstaller --windowed src/gui.py
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: executable-macos
         path: dist/gui
@@ -85,7 +85,7 @@ jobs:
         python -m PyInstaller --windowed src/gui.py
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: executable-linux
         path: dist/gui
